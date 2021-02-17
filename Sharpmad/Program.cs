@@ -51,25 +51,30 @@ namespace Sharpmad
             bool argRandom = false;
             bool argStatic = false;
             bool argTombstone = false;
-            bool argVerbose = false;      
+            bool argVerbose = false;
 
             if (args.Length > 0)
             {
+
+                switch (args[0].ToUpper())
+                {
+
+                    case "ADIDNS":
+                        argADIDNS = true;
+                        break;
+
+                    case "MAQ":
+                        argMAQ = true;
+                        break;
+
+                }
 
                 foreach (var entry in args.Select((value, index) => new { index, value }))
                 {
                     string argument = entry.value.ToUpper();
 
                     switch (argument)
-                    {
-
-                        case "ADIDNS":
-                            argADIDNS = true;
-                            break;
-
-                        case "MAQ":
-                            argMAQ = true;
-                            break;
+                    {      
 
                         case "-ACCESS":
                         case "/ACCESS":
@@ -259,12 +264,18 @@ namespace Sharpmad
                             }
 
                             break;
+
+                        default:
+                            if (argument.StartsWith("-") || argument.StartsWith("/"))
+                                throw new ArgumentException(paramName: argument, message: "Invalid Parameter");
+                            break;
+
                     }
 
                 }
 
             }
-
+            
             string[] accessTypes = { "CreateChild", "Delete", "DeleteChild", "DeleteTree", "ExtendedRight", "GenericAll", "GenericExecute", "GenericRead", "GenericWrite", "ListChildren", "ListObject", "ReadControl", "ReadProperty", "Self", "Synchronize", "WriteDacl", "WriteOwner", "WriteProperty" };
             string[] recordTypes = { "A", "AAAA", "CNAME", "DNAME", "MX", "NS", "PTR", "SRV", "TXT" };
             string[] containers = { "BUILTIN", "COMPUTERS", "DOMAINCONTROLLERS", "FOREIGNSECURITYPRINCIPALS", "KEYS", "LOSTANDFOUND", "MANAGEDSERVICEACCOUNTS", "PROGRAMDATA", "USERS", "ROOT" };
@@ -277,8 +288,11 @@ namespace Sharpmad
             try { port = Int32.Parse(argPort); } catch { throw new ArgumentException("Port value must be an integer"); }
             try { ttl = Int32.Parse(argTTL); } catch { throw new ArgumentException("TTL value must be an integer"); }
             try { soaSerialNumber = Int32.Parse(argSOASerialNumber); } catch { throw new ArgumentException("SOASerialNumber value must be an integer"); }
-
-            if((argADIDNS && String.Equals(argAction, "NEW")) && String.IsNullOrEmpty(argNode)) throw new ArgumentException("-Node needed");
+            if((argADIDNS && (!String.Equals(argAction, "ADDACE") && !String.Equals(argAction, "GETDACL") && !String.Equals(argAction, "GETZONE"))) && String.IsNullOrEmpty(argNode)) throw new ArgumentException("-Node needed");
+            if ((argADIDNS && String.Equals(argAction, "ADDACE")) && String.IsNullOrEmpty(argPrincipal)) throw new ArgumentException("-Principal needed");
+            if ((argADIDNS && String.Equals(argAction, "RENAME")) && String.IsNullOrEmpty(argNodeNew)) throw new ArgumentException("-NodeNew needed");
+            if ((argMAQ && !String.Equals(argAction, "GETCREATOR")) && String.IsNullOrEmpty(argMachineAccount)) throw new ArgumentException("-MachineAccount needed");
+            if (String.Equals(argAction, "GETATTRIBUTE") || String.Equals(argAction, "SETATTRIBUTE") && String.IsNullOrEmpty(argAttribute)) throw new ArgumentException("-Attribute needed");
             string credentialDomain = "";
             string credentialUsername = "";
 
@@ -388,7 +402,7 @@ namespace Sharpmad
                             ADIDNS.GetADIDNSNodeOwner(argDistinguishedName, argDomain, argDomainController, argNode, argPartition, argZone, argVerbose, credential);
                             break;
 
-                        case "GETPDACL":
+                        case "GETDACL":
                             ADIDNS.GetADIDNSDACL(argDistinguishedName, argDomain, argDomainController, argNode, argPartition, argZone, argVerbose, credential);
                             break;
 
@@ -434,7 +448,7 @@ namespace Sharpmad
                     {
 
                         case "AGENTSMITH":
-                            //MAQ.AgentSmith(argDistinguishedName, argDomain, argDomainController, argMachineAccount, argVerbose, credential);
+                            MAQ.AgentSmith(argContainer, argDistinguishedName, argDomain, argDomainController, argMachineAccount, argMachinePassword, argVerbose, credential);
                             break;
 
                         case "DISABLE":

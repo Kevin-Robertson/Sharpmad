@@ -31,6 +31,7 @@ namespace Sharpmad
                 Console.WriteLine("       -Action Remove        Remove a node.");
                 Console.WriteLine("       -Action Rename        Rename a node.");
                 Console.WriteLine("       -Action RemoveACE     Remove ACE from node.");
+                Console.WriteLine("       -Action SetAttribute  Get node attribute value.");
                 Console.WriteLine("");
                 Console.WriteLine("Example: Sharpmad.exe ADIDNS -Action new -Node test");
                 Console.WriteLine("");
@@ -96,7 +97,7 @@ namespace Sharpmad
                 Console.WriteLine("-Container           AD container.");
                 Console.WriteLine("-MachineAccount      Machine account name.");
                 Console.WriteLine("-MachinePassword     Machine account password.");
-                Console.WriteLine("-Random              Create a machine account with a random password.");
+                Console.WriteLine("-Random              Switch: Create a machine account with a random password.");
                 Console.WriteLine("");
             }
 
