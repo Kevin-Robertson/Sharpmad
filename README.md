@@ -1,7 +1,7 @@
 # Sharpmad
 C# version of Powermad
 
-This is yet complete and has not been fully tested. It's also missing the following:
+This is not yet complete and has not been fully tested. It's also missing the following:
 * Invoke-DNSUpdate   
 * Get-KerberosAESKey
 
