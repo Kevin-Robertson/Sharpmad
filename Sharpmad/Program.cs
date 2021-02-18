@@ -280,7 +280,7 @@ namespace Sharpmad
             string[] recordTypes = { "A", "AAAA", "CNAME", "DNAME", "MX", "NS", "PTR", "SRV", "TXT" };
             string[] containers = { "BUILTIN", "COMPUTERS", "DOMAINCONTROLLERS", "FOREIGNSECURITYPRINCIPALS", "KEYS", "LOSTANDFOUND", "MANAGEDSERVICEACCOUNTS", "PROGRAMDATA", "USERS", "ROOT" };
 
-            if (argADIDNS && (String.Equals(argAction, "GRANTPERMISSION") || String.Equals(argAction, "REVOKEPERMISSION")) && !accessTypes.Any(argAccess.Contains)) throw new ArgumentException("Access value must be CreateChild, Delete, DeleteChild, DeleteTree, ExtendedRight, GenericAll, GenericExecute, GenericRead, GenericWrite, ListChildren, ListObject, ReadControl, ReadProperty, Self, Synchronize, WriteDacl, WriteOwner, or WriteProperty");
+            if (argADIDNS && (String.Equals(argAction, "ADDACE") || String.Equals(argAction, "REMOVEACE")) && !accessTypes.Any(argAccess.Contains)) throw new ArgumentException("Access value must be CreateChild, Delete, DeleteChild, DeleteTree, ExtendedRight, GenericAll, GenericExecute, GenericRead, GenericWrite, ListChildren, ListObject, ReadControl, ReadProperty, Self, Synchronize, WriteDacl, WriteOwner, or WriteProperty");
             if (argMAQ && !containers.Any(argContainer.Contains)) throw new ArgumentException("Container value must be BUILTIN, COMPUTERS, DOMAINCONTROLLERS, FOREIGNSECURITYPRINCIPALS, KEYS, LOSTANDFOUND, MANAGEDSERVICEACCOUNTS, PROGRAMDATA, or USERS");
             try { preference = Int32.Parse(argPreference); } catch { throw new ArgumentException("Preference value must be an integer"); }
             try { priority = Int32.Parse(argPriority); } catch { throw new ArgumentException("Priority value must be an integer"); }
