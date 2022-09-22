@@ -235,6 +235,11 @@ namespace Sharpmad
                         case "/PASSWORD":
                             argPassword = args[entry.index + 1];
                             break;
+                            
+                        case "-VALUE":
+                        case "/VALUE":
+                            argValue = args[entry.index + 1];
+                            break;
 
                         case "-?":
                         case "/?":
