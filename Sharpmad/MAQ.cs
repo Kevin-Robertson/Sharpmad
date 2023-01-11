@@ -96,7 +96,7 @@ namespace Sharpmad
             }
             else if (!String.IsNullOrEmpty(node))
             {
-                distinguishedName = String.Concat("DC=", node, ",", distinguishedName);
+                distinguishedName = String.Concat("CN=", node, ",", distinguishedName);
             }
 
             return distinguishedName;
