@@ -431,6 +431,10 @@ namespace Sharpmad
                             ADIDNS.RenameADIDNSNode(argDistinguishedName, argDomain, argDomainController, argNode, argNodeNew, argPartition, argZone, argVerbose, credential);
                             break;
 
+                        case "REMOVE":
+                            ADIDNS.RemoveADIDNSNode(argDistinguishedName, argDomain, argDomainController, argAttribute, argNode, argNodeNew, argPartition, argZone, argVerbose, credential);
+                            break;
+
                         case "REMOVEACE":
                             ADIDNS.RemoveADIDNSACE(argDistinguishedName, argDomain, argDomainController, argNode, argPartition, argPrincipal, argAccessType, argZone, argAccess, argVerbose, credential);
                             break;
